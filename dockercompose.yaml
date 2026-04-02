@@ -1,10 +1,16 @@
 services:
-  faiss:
-    image: daangn/faiss:1.6.3-gpu-jupyter
-    container_name: faiss
-    
+  python-api:
+    build: .  # Assuming Dockerfile and main.py are in the current directory
+    container_name: python-api
+    volumes:
+      - .:/app
+    environment:
+      - OLLAMA_URL=http://ollama:11434
     networks:
       - ai-network
+    depends_on:
+      - ollama
+      
   ollama:
     image: ollama/ollama:latest
     container_name: ollama
@@ -49,15 +55,27 @@ services:
     ports:
       - "5678:5678"
     environment:
-      - N8N_HOST=localhost
+      - N8N_HOST=${NGROK_DOMAIN}
       - N8N_PORT=5678
-      - N8N_PROTOCOL=http
-      - WEBHOOK_URL=http://127.0.0.1:5678/ # Essential for Telegram
+      - N8N_PROTOCOL=https
+      - WEBHOOK_URL=https://${NGROK_DOMAIN}/ # Essential for Telegram
     volumes:
       - n8n_data:/home/node/.n8n
     restart: always
     networks:
       - ai-network
+
+  ngrok:
+    image: ngrok/ngrok:latest
+    restart: unless-stopped
+    networks:
+      - ai-network
+    environment:
+      - NGROK_AUTHTOKEN=2vU3NJQ9zAjDdth0Zpxg8WJ048A_65qmkaXdjCjaHkPbTm3tJ
+    command:
+      - "http"
+      - "n8n:5678"
+      - "--url=${NGROK_DOMAIN}" # Optional: Only if you have a static domain
 
 networks:
   ai-network:

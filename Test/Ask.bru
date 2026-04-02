@@ -1,0 +1,22 @@
+meta {
+  name: Ask
+  type: http
+  seq: 1
+}
+
+post {
+  url: http://localhost:8000/ask
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "question":"What is Harshil's School Name?"
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

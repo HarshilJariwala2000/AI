@@ -7,12 +7,15 @@ from langchain_community.docstore.in_memory import InMemoryDocstore
 from langchain_community.document_loaders import PyMuPDFLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_core.prompts import ChatPromptTemplate
+from fastapi import FastAPI, Response, Request
+from pydantic import BaseModel
 
+app = FastAPI()
 load_dotenv()
 
 DB_NAME = "my_story"
 DATA_PATH = "rag-dataset"
-OLLAMA_URL = "http://localhost:11434"
+OLLAMA_URL = os.getenv("OLLAMA_URL", "http://localhost:11434")
 
 
 # Store RAG Data
@@ -54,9 +57,17 @@ def store_rag_data():
 
     print("✅ RAG data stored successfully")
 
+class QueryRequest(BaseModel):
+    question: str
 
 # QUERY RAG
-def query_rag(question: str):
+@app.post("/ask")
+async def query_rag(request: QueryRequest):
+    question = request.question
+    print("Request: ")
+    print(request)
+    print("Question: ")
+    print(request.question)
     embeddings = OllamaEmbeddings(
         model="nomic-embed-text",
         base_url=OLLAMA_URL
@@ -103,12 +114,13 @@ def query_rag(question: str):
         "question": question,
         "context": context
     })
-    print(response)
-    return response.content
+    # print(response)
+    first_50 = response.content[:50]
+    return {"answer": first_50}
+    # return response.content
 
 # Main Function
 if __name__ == "__main__":
-    # store_rag_data()  # Run once
-
-    answer = query_rag("What is Harshil's school name?")
-    print(answer)
+    store_rag_data()  # Run once
+    # answer = query_rag("What is Harshil's school name?")
+    # print(answer)
