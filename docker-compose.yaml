@@ -33,22 +33,7 @@ services:
               capabilities:
                 - gpu
 
-  open-webui:
-    image: ghcr.io/open-webui/open-webui:cuda
-    container_name: open-webui
-    depends_on:
-      - ollama
-    ports:
-      - "3000:8080"
-    environment:
-      - 'OLLAMA_BASE_URL=http://ollama:11434'
-      - 'HF_TOKEN=' # Add your token here
-    volumes:
-      - open-webui:/app/backend/data
-    restart: unless-stopped
-    networks:
-      - ai-network
-
+  
   n8n:
     build:
       context: ./n8n
@@ -88,5 +73,4 @@ networks:
 
 volumes:
   ollama_data:
-  open-webui:
   n8n_data:
