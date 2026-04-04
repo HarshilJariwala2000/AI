@@ -50,7 +50,9 @@ services:
       - ai-network
 
   n8n:
-    image: n8nio/n8n:latest
+    build:
+      context: ./n8n
+      dockerfile: Dockerfile
     container_name: n8n
     ports:
       - "5678:5678"
@@ -61,9 +63,12 @@ services:
       - WEBHOOK_URL=https://${NGROK_DOMAIN}/ # Essential for Telegram
     volumes:
       - n8n_data:/home/node/.n8n
+      - ./n8n/workflows:/home/node/workflows
     restart: always
     networks:
       - ai-network
+    entrypoint: ["/bin/sh", "-c"]
+    command: ["n8n import:workflow --separate --input=/home/node/workflows/ && n8n start"]
 
   ngrok:
     image: ngrok/ngrok:latest
